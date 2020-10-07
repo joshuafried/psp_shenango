@@ -682,7 +682,7 @@ int sched_init(void)
 	}
 	/* check for minimum number of cores required */
 	i = bitmap_popcount(sched_allowed_cores, NCPU);
-	if (i < 4) {
+	if (i < 3) {
 		log_err("sched: %d is not enough cores\n", i);
 		return -EINVAL;
 	}
@@ -691,8 +691,10 @@ int sched_init(void)
 	 * third pass: reserve cores for iokernel and system
 	 */
 
-	i = bitmap_find_next_set(sched_allowed_cores, NCPU, 0);
+	i = bitmap_find_next_set(sched_allowed_cores, NCPU, 30);
 	sib = sched_siblings[i];
+	bitmap_clear(sched_allowed_cores, 0);
+	bitmap_clear(sched_allowed_cores, 32);
 	bitmap_clear(sched_allowed_cores, i);
 	bitmap_clear(sched_allowed_cores, sib);
 	sched_dp_core = sib;

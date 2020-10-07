@@ -221,6 +221,14 @@ static int parse_watchdog_flag(const char *name, const char *val)
 	return 0;
 }
 
+static int parse_stealing_flag(const char *name, const char *val)
+{
+	extern bool disable_stealing;
+	disable_stealing = true;
+	return 0;
+}
+
+
 static int parse_static_arp_entry(const char *name, const char *val)
 {
 	int ret;
@@ -347,6 +355,7 @@ static const struct cfg_handler cfg_handlers[] = {
 	{ "static_arp", parse_static_arp_entry, false },
 	{ "log_level", parse_log_level, false },
 	{ "disable_watchdog", parse_watchdog_flag, false },
+	{ "disable_stealing", parse_stealing_flag, false },
 	{ "preferred_socket", parse_preferred_socket, false },
 	{ "enable_storage", parse_enable_storage, false },
 	{ "enable_directpath", parse_enable_directpath, false },

@@ -26,6 +26,7 @@ static __thread void *runtime_stack_base;
 
 /* Flag to prevent watchdog from running */
 bool disable_watchdog;
+bool disable_stealing;
 
 /* real-time compute congestion signals (shared with the iokernel) */
 struct congestion_info *runtime_congestion;
@@ -355,18 +356,21 @@ again:
 		goto done;
 	}
 
-	/* then try to steal from a sibling kthread */
-	sibling = cpu_map[l->curr_cpu].sibling_core;
-	r = cpu_map[sibling].recent_kthread;
-	if (r && r != l && steal_work(l, r))
-		goto done;
-
-	/* try to steal from every kthread */
-	start_idx = rand_crc32c((uintptr_t)l);
-	for (i = 0; i < nrks; i++) {
-		int idx = (start_idx + i) % nrks;
-		if (ks[idx] != l && steal_work(l, ks[idx]))
+	if (!disable_stealing) {
+		/* then try to steal from a sibling kthread */
+		sibling = cpu_map[l->curr_cpu].sibling_core;
+		r = cpu_map[sibling].recent_kthread;
+		if (r && r != l && steal_work(l, r))
 			goto done;
+
+		/* try to steal from every kthread */
+		start_idx = rand_crc32c((uintptr_t)l);
+		for (i = 0; i < nrks; i++) {
+			int idx = (start_idx + i) % nrks;
+			if (ks[idx] != l && steal_work(l, ks[idx]))
+				goto done;
+		}
+
 	}
 
 	/* recheck for local softirqs one last time */

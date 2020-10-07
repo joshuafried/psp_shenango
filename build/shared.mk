@@ -15,7 +15,7 @@ LD      = gcc
 CC      = gcc
 LDXX	= g++
 CXX	= g++
-AR      = ar
+AR      = gcc-ar
 SPARSE  = sparse
 
 # libraries to include

@@ -178,10 +178,10 @@ static struct mbuf *net_rx_one(struct mbuf *m)
 		goto drop;
 
 	/* Did HW checksum verification pass? */
-	if (m->csum_type != CHECKSUM_TYPE_UNNECESSARY) {
-		if (chksum_internet(iphdr, sizeof(*iphdr)))
-			goto drop;
-	}
+//	if (m->csum_type != CHECKSUM_TYPE_UNNECESSARY) {
+//		if (chksum_internet(iphdr, sizeof(*iphdr)))
+//			goto drop;
+//	}
 
 	if (unlikely(!ip_hdr_supported(iphdr)))
 		goto drop;

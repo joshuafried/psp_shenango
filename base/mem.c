@@ -33,6 +33,9 @@ int shmctl(int shm_id, int cmd, struct shmid_ds* buf);
 int shmdt(const void *addr);
 int shmget(key_t key, size_t size, int flags);
 
+#define SHM_HUGETLB	04000	/* segment will use huge TLB pages */
+
+
 long mbind(void *start, size_t len, int mode,
 	   const unsigned long *nmask, unsigned long maxnode,
 	   unsigned flags)
@@ -99,7 +102,7 @@ __mem_map_anom(void *base, size_t len, size_t pgsize,
 
 	BUILD_ASSERT(sizeof(unsigned long) * 8 >= NNUMA);
 	if (mbind(addr, len, numa_policy, mask ? mask : NULL,
-		  mask ? NNUMA : 0, MPOL_MF_STRICT | MPOL_MF_MOVE))
+		  mask ? NNUMA + 1 : 0, MPOL_MF_STRICT))
 		goto fail;
 
 	touch_mapping(addr, len, pgsize);

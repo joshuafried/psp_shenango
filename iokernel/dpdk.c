@@ -49,6 +49,9 @@
 #define RX_RING_SIZE 256
 #define TX_RING_SIZE 256
 
+#define I40E_RX_RING_SIZE 1024
+#define I40E_TX_RING_SIZE 1024
+
 #define MLX5_RX_RING_SIZE 2048
 #define MLX5_TX_RING_SIZE 2048
 
@@ -68,7 +71,7 @@ static const struct rte_eth_conf port_conf_default = {
 		},
 	},
 	.txmode = {
-		.offloads = DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_UDP_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM,
+		.offloads = DEV_TX_OFFLOAD_MBUF_FAST_FREE, // | DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM,
 	},
 };
 
@@ -100,10 +103,16 @@ static inline int dpdk_port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 	rxconf->rx_free_thresh = 64;
 	dp.is_mlx = !strncmp(dev_info.driver_name, "net_mlx", 7);
 
-	if (!strncmp(dev_info.driver_name, "net_mlx5", 8)) {
+	if (!strcmp(dev_info.driver_name, "net_mlx5")) {
 		nb_rxd = MLX5_RX_RING_SIZE;
 		nb_txd = MLX5_TX_RING_SIZE;
+	} else if (!strcmp(dev_info.driver_name, "net_i40e")) {
+		nb_rxd = I40E_RX_RING_SIZE;
+		nb_txd = I40E_TX_RING_SIZE;
 	}
+
+	if (!(dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE))
+		port_conf.txmode.offloads &= ~DEV_TX_OFFLOAD_MBUF_FAST_FREE;
 
 	/* Configure the Ethernet device. */
 	retval = rte_eth_dev_configure(port, rx_rings, tx_rings, &port_conf);
@@ -166,6 +175,14 @@ static inline int dpdk_port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 		}
 	}
 #endif
+
+	struct rte_eth_link link;
+	rte_eth_link_get_nowait(port, &link);
+	if (ETH_LINK_UP != link.link_status) {
+		log_err("No link!");
+		return -1;
+	}
+
 
 	return 0;
 }

@@ -25,3 +25,8 @@ done
 # load msr module
 modprobe msr
 
+for i in {0..63}; do sudo wrmsr -p$i 0x1a0 0x4000850089; done
+
+for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+    echo performance > $f
+done
